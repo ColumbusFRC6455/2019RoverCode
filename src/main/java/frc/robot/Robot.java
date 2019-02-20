@@ -20,7 +20,9 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -63,7 +65,7 @@ public class Robot extends TimedRobot {
   boolean hatchextended = false;
   //
   NetworkTableInstance inst = NetworkTableInstance.getDefault();
-  
+  boolean AutoFirstLoop = true;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -80,7 +82,6 @@ public class Robot extends TimedRobot {
     HatchA.set(DoubleSolenoid.Value.kOff);
     HatchB.set(DoubleSolenoid.Value.kOff);
     // End setting up Victors to follow other victors....
-
   }
  
   /**
@@ -93,6 +94,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    if(RobotController.getBatteryVoltage() < 11.3){
+      DriverStation.reportError("My Battery is getting low... and i'm feeling weak.",false);
+    }
   }
 
   /**
@@ -106,6 +110,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
+    AutoFirstLoop = true;
+    if(RobotMap.HatchandBall.getRawButtonPressed(1)){
+
+    }
+    if(RobotMap.HatchandBall.getRawButtonPressed(2)){
+      
+    }
     Scheduler.getInstance().run();
   }
 
@@ -130,7 +141,6 @@ public class Robot extends TimedRobot {
      * = new MyAutoCommand(); break; case "Default Auto": default:
      * autonomousCommand = new ExampleCommand(); break; }
      */
-
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.start();
@@ -140,8 +150,32 @@ public class Robot extends TimedRobot {
   /**
    * This function is called periodically during autonomous.
    */
+  
   @Override
   public void autonomousPeriodic() {
+    if(AutoFirstLoop){
+      AutoFirstLoop = false;
+      HatchA.set(DoubleSolenoid.Value.kReverse);
+      HatchB.set(DoubleSolenoid.Value.kReverse);
+    }
+    DifDrive.arcadeDrive(-RobotMap.mainJoystick.getRawAxis(1), RobotMap.mainJoystick.getRawAxis(0)); // X axis Z axis.
+    Scheduler.getInstance().run();
+    tal1.set(RobotMap.HatchandBall.getRawAxis(1));
+    //TARGET, TARGET SIZE, TARGET CENTER!
+    
+    //Hatch manipulator handle...
+    if(RobotMap.HatchandBall.getRawButtonPressed(1)){
+      HatchA.set(DoubleSolenoid.Value.kForward);
+      HatchB.set(DoubleSolenoid.Value.kForward);
+      System.out.println("Button Pressed!");
+    }
+    if(RobotMap.HatchandBall.getRawButtonPressed(2)){
+      System.out.println("Button Released!");
+      HatchA.set(DoubleSolenoid.Value.kReverse);
+      HatchB.set(DoubleSolenoid.Value.kReverse);
+      //HatchA.set(DoubleSolenoid.Value.kOff);
+      //HatchB.set(DoubleSolenoid.Value.kOff);
+    }
     Scheduler.getInstance().run();
   }
 
